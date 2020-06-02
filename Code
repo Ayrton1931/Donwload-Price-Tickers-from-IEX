@@ -1,0 +1,28 @@
+setwd("C:/Users/hp/Google Drive/AYRTON2/INVESTMENTS/STATA/DATA/tempFolder")  #### Set work directory
+library(readstata13)                                                         #### for read and write stata files
+library(foreign)                                                             #### for import 
+library(riingo)                                                              #### To import IEX data   
+library(rlist)
+sartD <- c("2020-02-17")                                                     #### Define start date
+EndD <- c("2020-02-28")                                                      #### Define end date 
+Base <- read.dta13("ForDailyR_Donwload.dta")                                 #### Introduce database that contain tickers names
+names(Base)                                                                  #### DEtect name of column that contain tickers names   
+symbol <- Base$symbol                                                        #### Take just column of name symbols 
+symbol <- unique(symbol)                                                     #### Drop duplicates
+length(symbol)                                                                  
+riingo_set_token("ac1c5ebc495cc62226b25672c4c22f23814246fd")                 #### Introduce API code. Get it in IEXtrading.com
+symbol <- data.frame(symbol)                                                  
+ListData <- list()                                                           #### Define empty list to save download price info.
+for(i in symbol$symbol){                                                     #### Loop for each symbol     
+ListData[[ which(symbol$symbol== as.character(i) )  ]]  <- riingo_iex_prices(as.character(i), start_date = sartD, end_date = EndD,
+                       resample_frequency = "5min")  
+}
+###### Append all ticker's dataframe in one dataframe.
+for (i in 1:length(ListData) ){  
+  ifelse( i==1, M <- rbind( ListData[[1]], ListData[[2]]), M <- rbind( M, ListData[[i]] ) )     
+}
+
+#Save
+M <- data.frame(M)
+write.dta( M, file="daily_tickets.dta", convert.dates = FALSE )               ##### Export to csv file
+º
